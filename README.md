@@ -6,7 +6,9 @@ This repository provides the codes used for ICRA 2026 submission. It includes th
 
 
 **Maintainer**: Private.
+
 **Affiliation**: Private.
+
 **Contact**: Private.
 
 ---
@@ -144,7 +146,8 @@ Run the cuvslam_launcher.py file and wait until everything is set.
 
 ## Submission video ##
 
-TODO UPLOAD VIDEO.
+<video src="video/ICRA26_3061_VI_i.mp4" controls width="600">
+</video>
 
 
 
