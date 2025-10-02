@@ -38,12 +38,12 @@ This software stack was tested on:
 - More agents can be easily added with minimal additions if the hardware allows it. 
 - If anything does not work, first reboot and retry, since that usually resolves common issues.
 
-0. Activate your conda environment (generally this is: ```conda activate env_isaaclab``` if you followed the installation guidelines) and source ROS 2: 
+**0. Activate** your conda environment (generally this is: ```conda activate env_isaaclab``` if you followed the installation guidelines) and source ROS 2: 
 
 ```source /opt/ros/humble/setup.bash```
 
 
-1. Train without SLAM:
+**1. Train without SLAM:**
 - Run:
 ```python scripts/rsl_rl/train.py   --task Template-Pdrl-Aslam-v0  --num_envs 512 --headless```
 
@@ -54,7 +54,7 @@ This will run the initial training without SLAM with 512 environments in paralle
 ```python scripts/rsl_rl/train.py   --task Template-Pdrl-Aslam-v0  --num_envs 512```
 
 
-2. Play without SLAM:
+**2. Play without SLAM:**
 
 By default, the loaded policy is the last model of the last run of the experiment folder PDRL_ASLAM/logs/rsl_rl/PDRL_ASLAM_v0
 
@@ -67,7 +67,7 @@ To run this already trained agent run:
 Different environments can be tested by changing the variable ENVIRONMENT in the config.py file.
 
 
-3. Retrain with SLAM:
+**3. Retrain with SLAM:**
 
 - Open the config.py file and change the default settings so that:
 
@@ -101,7 +101,7 @@ This will run the retraining with SLAM with 2 environments in parallel and no vi
   agent.load_checkpoint=trained_no_SLAM.pt \
 --enable_cameras```
 
-4. Play with SLAM:
+**4. Play with SLAM:**
 
 - Open the config.py file and change the default settings so that:
 
@@ -126,7 +126,7 @@ PDRL_ASLAM/demos
 
 Different environments can be tested by changing the variable ENVIRONMENT in the config.py file.
 
-5. Training debug:
+**5. Training debug:**
 
 Open the config.py file and change the settings so that:
 
