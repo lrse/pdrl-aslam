@@ -1,6 +1,10 @@
-# ros2_training_wrapper.py
-# Keep ROS2 callbacks running in a background executor (for covariance subs),
-# but publish TF/stereo ONLY from the sim thread after each env.step().
+"""This module contains the wrapper configuration to incorporate SLAM package
+during training."""
+
+from __future__ import annotations
+
+import numpy as np
+import torch
 
 import time
 import threading
@@ -10,133 +14,69 @@ import rclpy
 from rclpy.utilities import ok as ros_ok
 from rclpy.executors import MultiThreadedExecutor
 
+from ros2_bridge import RobotDataManager
+
+# To later avoid the one-frame lag.
+OBS_XY_SLICE = slice(100, 102)
+
 
 class Ros2TrainingWrapper(gym.Wrapper):
-    """Runs RobotDataManager in a background executor and enforces a per-env
-    'fresh covariance per step' contract with warm-up after resets.
+    """Runs RobotDataManager in a background executor and forces a per-environment
+    fresh odometry per step.
 
-    Contract (per env):
-      - After any reset (full or partial), allow `warmup_steps` ungated steps for that env.
-      - Once that env produces its first post-reset covariance, mark it ARMED.
-      - On each training step, block until all ARMED envs have provided NEW covariance
-        relative to the last step. Newly reset (unarmed) envs are temporarily exempt.
-      - Skip the very next pre-step wait once right after an env becomes ARMED
-        (to avoid waiting before we publish new frames).
-
-    Args:
-        env: gym.Env
-        dm_ctor: callable -> rclpy.Node (RobotDataManager)
-        dm_kwargs: kwargs for dm_ctor
-        subs_wait_timeout: seconds to wait once for cuVSLAM subscribers (0 = no wait)
-        require_subs: if True, enforce subscriber wait
-        cov_per_step_timeout: None => wait forever; float => max seconds per wait before raising
-        warmup_steps: number of ungated steps per env after it resets (typically 1–2)
-    """
+    Overview:
+    - Once that env produces its first post-reset odometry, mark it as "ARMED".
+    - On each training step, block until all envs have provided new odometry."""
 
     def __init__(
         self,
-        env,
-        dm_ctor,
-        dm_kwargs=None,
-        *,
-        subs_wait_timeout: float = 0.0,
-        require_subs: bool = False,
-        cov_per_step_timeout: float | None = None,  # None => infinite wait
-        warmup_steps: int = 1,
-        warmup_time_s: float | None = None,         # reserved / unused
+        env
     ):
         super().__init__(env)
 
-        # Initialize ROS if needed
+        # Initialize ROS. Track whether we created it, so close() can safely
+        # call rclpy.shutdown() without killing other environments' ROS.
         self._owns_rclpy = False
         if not ros_ok():
             rclpy.init(args=[])
             self._owns_rclpy = True
 
-        # Bridge node
-        self._dm = dm_ctor(**(dm_kwargs or {}))
-        # Expose for obs/reward hooks
+        # Bridge node.
+        self._dm = RobotDataManager(env=self.env.unwrapped)
+
+        # Creates data_manager inside the base environment and inserts the node onto
+        # it so we can use live robot data.
         self.env.unwrapped.data_manager = self._dm
 
-        # Background executor to service subscriptions (NO timers touching GPU)
+        # Background executor to service subscriptions (no timers touching GPU).
         self._executor = MultiThreadedExecutor()
         self._executor.add_node(self._dm)
         self._spin_thread = threading.Thread(target=self._executor.spin, daemon=True)
         self._spin_thread.start()
 
-        # One-time subscriber wait (optional)
-        self._subs_wait_timeout = float(subs_wait_timeout)
-        self._require_subs = bool(require_subs)
-        self._did_wait_subs = False
-
-        # Timing / gating
-        self._cov_per_step_timeout = cov_per_step_timeout
-        self._warmup_steps = int(warmup_steps)
-        self._warmup_time_s = warmup_time_s  # not used
-
-        # Bookkeeping (filled in reset())
         self._num_envs = getattr(self._dm, "num_envs", 1)
         self._armed = [False] * self._num_envs
-        self._cooldown = [self._warmup_steps] * self._num_envs
         self._seq_at_reset = [0] * self._num_envs
-        self._last_cov_seq = [0] * self._num_envs
-        self._skip_wait_once = [False] * self._num_envs  # one-shot after (re)arming
+        self._last_odom_seq = [0] * self._num_envs
+        self._skip_wait_once = [False] * self._num_envs 
 
-    # ----------------
-    # Helper utilities
-    # ----------------
-    def _wait_for_cuvslam_subs(self, timeout: float) -> bool:
-        if timeout <= 0.0:
-            return True
-        t0 = time.monotonic()
+##
+# Config helpers.
+##
 
-        def topics_for_env(i: int):
-            ns = "unitree_go2" if self._num_envs == 1 else f"unitree_go2_{i}"
-            return [
-                f"{ns}/visual_slam/image_0",
-                f"{ns}/visual_slam/camera_info_0",
-                f"{ns}/visual_slam/image_1",  
-                f"{ns}/visual_slam/camera_info_1",    
-                # f"{ns}/visual_slam/imu", #TRYING IMU
-            ]
-
-        while (time.monotonic() - t0) < timeout:
-            all_ok = True
-            for i in range(self._num_envs):
-                for topic in topics_for_env(i):
-                    try:
-                        if len(self._dm.get_subscriptions_info_by_topic(topic)) == 0:
-                            all_ok = False
-                            break
-                    except Exception:
-                        all_ok = False
-                        break
-                if not all_ok:
-                    break
-            if all_ok:
-                try:
-                    self._dm.get_logger().info("cuVSLAM subscribers detected on stereo topics for ALL envs.")
-                except Exception:
-                    pass
-                return True
-            time.sleep(0.05)
-
+    def _fetch_slam_xy(self, i: int):
         try:
-            self._dm.get_logger().warn(
-                f"No cuVSLAM subscribers for all envs within {timeout:.1f}s. Continuing anyway."
-            )
+            xy = self._dm.get_slam_xy_at_last_odom(env_idx=i)
+            if xy is None:
+                return None
+            x, y = float(xy[0]), float(xy[1])
+            return x, y
         except Exception:
-            pass
-        return False
+            return None
 
-    def _tick_ros(self):
-        """Publish once from sim thread (safe) and let executor handle callbacks."""
-        self._dm.pub_ros2_data()
-
+    # Normalize vectors.
     def _env_bool_list(self, x):
-        """Convert terminated/truncated to a list[bool] of length N."""
         try:
-            import numpy as np
             if hasattr(x, "detach"):
                 arr = x.detach().cpu().numpy()
             elif hasattr(x, "__array__"):
@@ -151,105 +91,173 @@ class Ros2TrainingWrapper(gym.Wrapper):
                 return [bool(v) for v in x]
             return [bool(x)] * self._num_envs
 
-    def _poll_cov_seqs(self):
-        return [self._dm.get_cov_seq(i) for i in range(self._num_envs)]
+    def _poll_odom_seqs(self):
+        return self._dm._snapshot_odom_seqs()
 
-    def _wait_for_new_cov_on_armed(self) -> bool:
-        """Block until every ARMED env (except those skipping once) has seq > last_cov_seq.
-           Unarmed envs are ignored."""
-        # Determine which envs we must actually wait on
-        active = [i for i, a in enumerate(self._armed) if a and not self._skip_wait_once[i]]
+    # Blocks until new odometry messages arrive for ARMED environments.
+    def _wait_for_new_odom_on_armed(self):
+        active = [i for i in range(self._num_envs) if self._armed[i] and not self._skip_wait_once[i]]
         if not active:
-            # Consume one-shot skips so that next loop will start waiting normally
-            for i in range(self._num_envs):
-                if self._skip_wait_once[i] and self._armed[i]:
-                    self._skip_wait_once[i] = False
-            return True
+            self._skip_wait_once = [False] * self._num_envs     # No skipping anymore but keeping it as a reminder.
 
-        t0 = time.time()
+            return self._poll_odom_seqs()
+
         while True:
-            seqs = self._poll_cov_seqs()
-            ready = all(seqs[i] > self._last_cov_seq[i] for i in active)
-            if ready:
+            seqs = self._poll_odom_seqs()
+            if all(seqs[i] > self._last_odom_seq[i] for i in active):
                 for i in active:
-                    self._last_cov_seq[i] = seqs[i]
-                # Also consume any pending one-shot skips on ARMED envs
-                for i in range(self._num_envs):
-                    if self._skip_wait_once[i] and self._armed[i]:
-                        self._skip_wait_once[i] = False
-                return True
+                    self._last_odom_seq[i] = seqs[i]
+                self._skip_wait_once = [False] * self._num_envs
+                return seqs
 
-            if (self._cov_per_step_timeout is not None) and ((time.time() - t0) >= self._cov_per_step_timeout):
-                return False
+            if not ros_ok() or (self._spin_thread and not self._spin_thread.is_alive()):
+                raise RuntimeError("ROS node or executor stopped.")
             time.sleep(0.001)
 
-    # -------------
-    # Gym API
-    # -------------
+##
+# Gym API.
+##
+
     def reset(self, **kwargs):
         obs, info = self.env.reset(**kwargs)
 
-        # Optional: wait once for subscribers (does not touch GPU)
-        if self._require_subs and not self._did_wait_subs and self._subs_wait_timeout > 0.0:
-            self._wait_for_cuvslam_subs(timeout=self._subs_wait_timeout)
-            self._did_wait_subs = True
-
-        # Re-init per-env gating
-        self._num_envs = getattr(self._dm, "num_envs", 1)
-        seqs = self._poll_cov_seqs()
-        self._seq_at_reset = seqs[:]                 # baseline at full reset
-        self._last_cov_seq = seqs[:]
-        self._armed = [False] * self._num_envs       # everyone starts unarmed
-        self._cooldown = [self._warmup_steps] * self._num_envs
+        self._num_envs = self._dm.num_envs
+        seqs = self._poll_odom_seqs()
+        self._seq_at_reset = seqs[:]
+        self._last_odom_seq = seqs[:]
+        self._armed = [False] * self._num_envs
         self._skip_wait_once = [False] * self._num_envs
 
-        # Do NOT publish here; first _tick_ros happens after first step
+        # Delete any pre-reset SLAM (x,y) so we never reuse it.
+        try:
+            with self._dm._odom_lock:
+                for i in range(self._num_envs):
+                    self._dm._xy_at_odom_seq[i] = None
+        except Exception:
+            pass
+
+        # Preset start pose since it starts at (0,0).
+        target = obs["policy"] if (isinstance(obs, dict) and "policy" in obs) else obs
+        try:
+            if hasattr(target, "detach"):
+                device, dtype = target.device, target.dtype
+                with torch.no_grad():
+                    for i in range(self._num_envs):
+                        target[i, OBS_XY_SLICE] = torch.tensor([0.0, 0.0], dtype=dtype, device=device)
+            else:
+                arr = np.asarray(target)
+                for i in range(self._num_envs):
+                    arr[i, OBS_XY_SLICE] = (0.0, 0.0)
+                if isinstance(obs, dict) and "policy" in obs:
+                    obs["policy"] = arr
+                else:
+                    obs = arr
+        except Exception:
+            pass
+
+        # Wait until every environment has produced first odometry.
+        while True:
+            self._dm.pub_ros2_data()
+            seqs = self._poll_odom_seqs()
+            if all(seqs[i] > self._seq_at_reset[i] for i in range(self._num_envs)):
+                self._armed = [True] * self._num_envs
+                self._last_odom_seq = seqs[:]
+                self._skip_wait_once = [False] * self._num_envs
+                break
+            if not ros_ok() or (self._spin_thread and not self._spin_thread.is_alive()):
+                raise RuntimeError("ROS node or executor stopped during bootstrap.")
+            time.sleep(0.001)
+
         return obs, info
 
     def step(self, action):
-        # 1) Before stepping: wait for NEW covariance on all ARMED envs
-        #    (but skip those that just armed on the previous step)
-        if not self._wait_for_new_cov_on_armed():
-            raise RuntimeError("Per-step covariance wait timed out. SLAM did not provide fresh pose(s).")
-
-        # 2) Do the actual environment step
         obs, rew, terminated, truncated, info = self.env.step(action)
 
-        # 3) Detect which envs reset this step (partial resets)
         term_b = self._env_bool_list(terminated)
         trunc_b = self._env_bool_list(truncated)
         just_reset = [bool(term_b[i] or trunc_b[i]) for i in range(self._num_envs)]
         if any(just_reset):
-            seqs_now = self._poll_cov_seqs()
+            seqs_now = self._poll_odom_seqs()
             for i, jr in enumerate(just_reset):
                 if jr:
                     self._armed[i] = False
-                    self._cooldown[i] = self._warmup_steps
                     self._seq_at_reset[i] = seqs_now[i]
-                    self._last_cov_seq[i] = seqs_now[i]
+                    self._last_odom_seq[i] = seqs_now[i]
                     self._skip_wait_once[i] = False
+                    # Delete any pre-reset SLAM (x,y) so we never reuse it.
+                    try:
+                        with self._dm._odom_lock:
+                            self._dm._xy_at_odom_seq[i] = None
+                    except Exception:
+                        pass
                     try:
                         self._dm.get_logger().info(f"Env {i} RESET: baseline seq={seqs_now[i]}")
                     except Exception:
                         pass
 
-        # 4) Publish frames for SLAM (these will produce covariance for the NEXT wait)
-        self._tick_ros()
+        # Publish images for the new state.
+        self._dm.pub_ros2_data()
 
-        # 5) Post-step: count down warmup and (re)arm envs that have produced first cov
-        seqs_after = self._poll_cov_seqs()
+        # Wait and get the exact seqs that satisfied the wait.
+        ready_seqs = self._wait_for_new_odom_on_armed()
+
+        for _ in range(8):
+            snapshots = [self._dm.get_odom_seq_and_xy(i) for i in range(self._num_envs)]
+            if all(
+                (not self._armed[i] or self._skip_wait_once[i]) or
+                (snapshots[i][0] >= ready_seqs[i])
+                for i in range(self._num_envs)
+            ):
+                break
+            time.sleep(0.0005)
+
+        # Patch observation with SLAM (x,y).
+        target = obs["policy"] if (isinstance(obs, dict) and "policy" in obs) else obs
+        try:
+            if hasattr(target, "detach"):
+                device, dtype = target.device, target.dtype
+                with torch.no_grad():
+                    for i in range(self._num_envs):
+                        seq_i, xy = snapshots[i]
+                        if not self._armed[i]:
+                            target[i, OBS_XY_SLICE] = torch.tensor([0.0, 0.0], dtype=dtype, device=device)
+                            continue
+                        if xy is None:
+                            target[i, OBS_XY_SLICE] = torch.tensor([0.0, 0.0], dtype=dtype, device=device)
+                            continue
+                        target[i, OBS_XY_SLICE] = torch.tensor(xy, dtype=dtype, device=device)
+            else:
+                arr = np.asarray(target)
+                for i in range(self._num_envs):
+                    seq_i, xy = snapshots[i]
+                    if not self._armed[i]:
+                        arr[i, OBS_XY_SLICE] = (0.0, 0.0)
+                        continue
+                    if xy is None:
+                        arr[i, OBS_XY_SLICE] = (0.0, 0.0)
+                        continue
+                    arr[i, OBS_XY_SLICE] = xy
+                if isinstance(obs, dict) and "policy" in obs:
+                    obs["policy"] = arr
+                else:
+                    obs = arr
+        except Exception:
+            pass
+
+        self._last_ready_seqs = ready_seqs
+        self._last_snapshots = snapshots
+
+        # Arm any environment that produced first post-reset odometry.
+        seqs_after = self._poll_odom_seqs()
         for i in range(self._num_envs):
-            if not self._armed[i]:
-                if self._cooldown[i] > 0:
-                    self._cooldown[i] -= 1
-                if self._cooldown[i] == 0 and (seqs_after[i] > self._seq_at_reset[i]):
-                    self._armed[i] = True
-                    self._last_cov_seq[i] = seqs_after[i]
-                    self._skip_wait_once[i] = True  # skip the very next pre-step wait once
-                    try:
-                        self._dm.get_logger().info(f"Env {i} ARMED (post-reset), seq={seqs_after[i]}")
-                    except Exception:
-                        pass
+            if (not self._armed[i]) and (seqs_after[i] > self._seq_at_reset[i]):
+                self._armed[i] = True
+                self._last_odom_seq[i] = seqs_after[i]
+                self._skip_wait_once[i] = False
+                try:
+                    self._dm.get_logger().info(f"Env {i} ARMED (post-reset), seq={seqs_after[i]}")
+                except Exception:
+                    pass
 
         return obs, rew, terminated, truncated, info
 

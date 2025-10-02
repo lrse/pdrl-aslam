@@ -8,56 +8,12 @@
 """Launch Isaac Sim Simulator first."""
 
 import argparse
+import sys
 
 from isaaclab.app import AppLauncher
 
 # local imports
 import cli_args  # isort: skip
-
-
-#JUST ADDED FOR PRINTING CSV
-import csv
-import numpy as np
-import os
-
-def _read_cov_snapshot(env, env_id: int):
-    """
-    Preferred: read coverage snapshot captured by the env at reset time
-    into env.unwrapped._last_episode_cov. Falls back to (-1,-1,nan) if missing.
-    """
-    cov = getattr(env.unwrapped, "_last_episode_cov", None)
-    if cov is None:
-        return -1, -1, float("nan")
-    try:
-        cells = int(cov["covered"][env_id])
-        total = int(cov["total"][env_id])
-        frac  = float(cov["frac"][env_id])
-        # clear after reading so we don't reuse on next episode
-        cov["covered"][env_id] = -1
-        cov["total"][env_id]   = -1
-        cov["frac"][env_id]    = np.nan
-        return cells, total, frac
-    except Exception:
-        return -1, -1, float("nan")
-
-
-def _coverage_from_grid_now(env, env_id: int):
-    """
-    Fallback: try to read current visited grid immediately on 'done' step.
-    This may be 0 if the wrapper already auto-reset.
-    """
-    S = getattr(env.unwrapped, "_pose_cov_state", None)
-    if not S or "cov2d" not in S:
-        return None
-    C = S["cov2d"]
-    vis = C["visited"][env_id]
-    covered = int(np.count_nonzero(vis))
-    total   = int(C["total"])
-    frac    = float(covered / total) if total > 0 else 0.0
-    return covered, total, frac
-
-#JUST ADDED FOR PRINTING CSV
-
 
 # add argparse arguments
 parser = argparse.ArgumentParser(description="Train an RL agent with RSL-RL.")
@@ -68,28 +24,25 @@ parser.add_argument(
 )
 parser.add_argument("--num_envs", type=int, default=None, help="Number of environments to simulate.")
 parser.add_argument("--task", type=str, default=None, help="Name of the task.")
+parser.add_argument("--seed", type=int, default=None, help="Seed used for the environment")
 parser.add_argument(
     "--use_pretrained_checkpoint",
     action="store_true",
     help="Use the pre-trained checkpoint from Nucleus.",
 )
 parser.add_argument("--real-time", action="store_true", default=False, help="Run in real-time, if possible.")
-#JUST ADDED FOR PRINTING CSV
-parser.add_argument("--reward_log", type=str, default="rewards.csv",
-                    help="Path to CSV file to append per-step rewards (default: rewards.csv).")
-parser.add_argument("--reward_log_interval", type=int, default=100,
-                    help="Flush the reward log to disk every N steps (default: 100).")
-parser.add_argument("--episode_log", type=str, default="episodes.csv",
-                    help="Path to CSV file to append per-episode summaries (default: episodes.csv).")
-#JUST ADDED FOR PRINTING CSV
 # append RSL-RL cli arguments
 cli_args.add_rsl_rl_args(parser)
 # append AppLauncher cli args
 AppLauncher.add_app_launcher_args(parser)
-args_cli = parser.parse_args()
+# parse the arguments
+args_cli, hydra_args = parser.parse_known_args()
 # always enable cameras to record video
 if args_cli.video:
     args_cli.enable_cameras = True
+
+# clear out sys.argv for Hydra
+sys.argv = [sys.argv[0]] + hydra_args
 
 # launch omniverse app
 app_launcher = AppLauncher(args_cli)
@@ -104,7 +57,13 @@ import torch
 
 from rsl_rl.runners import OnPolicyRunner
 
-from isaaclab.envs import DirectMARLEnv, multi_agent_to_single_agent
+from isaaclab.envs import (
+    DirectMARLEnv,
+    DirectMARLEnvCfg,
+    DirectRLEnvCfg,
+    ManagerBasedRLEnvCfg,
+    multi_agent_to_single_agent,
+)
 from isaaclab.utils.assets import retrieve_file_path
 from isaaclab.utils.dict import print_dict
 from isaaclab.utils.pretrained_checkpoint import get_published_pretrained_checkpoint
@@ -112,62 +71,36 @@ from isaaclab.utils.pretrained_checkpoint import get_published_pretrained_checkp
 from isaaclab_rl.rsl_rl import RslRlOnPolicyRunnerCfg, RslRlVecEnvWrapper, export_policy_as_jit, export_policy_as_onnx
 
 import isaaclab_tasks  # noqa: F401
-from isaaclab_tasks.utils import get_checkpoint_path, parse_env_cfg
+from isaaclab_tasks.utils import get_checkpoint_path
+from isaaclab_tasks.utils.hydra import hydra_task_config
 
 import PDRL_ASLAM.tasks  # noqa: F401
 
-#JUST ADDED FOR PRINTING CSV
-# ---- reward & episode logging setup ----
-log_writer = None
-log_file = None
-ep_log_writer = None
-ep_log_file = None
-ep_ret = None     # will be sized lazily after first step
-ep_len = None
+# PLACEHOLDER: Extension template (do not remove this comment)
 
-def _to_numpy(x):
-    if torch is not None and isinstance(x, torch.Tensor):
-        return x.detach().cpu().numpy()
-    return np.asarray(x)
 
-if args_cli.reward_log:
-    parent = os.path.dirname(args_cli.reward_log)
-    if parent:
-        os.makedirs(parent, exist_ok=True)
-    log_file = open(args_cli.reward_log, "w", newline="")
-    log_writer = csv.writer(log_file)
-    log_writer.writerow(["step", "env_id", "reward"])  # per-step schema
-
-if args_cli.episode_log:
-    parent = os.path.dirname(args_cli.episode_log)
-    if parent:
-        os.makedirs(parent, exist_ok=True)
-    ep_log_file = open(args_cli.episode_log, "w", newline="")
-    ep_log_writer = csv.writer(ep_log_file)
-    ep_log_writer.writerow(["step_end", "env_id", "episode_return", "episode_length",
-                        "cov_cells", "cov_total", "cov_frac"])  # per-episode schema
-
-#JUST ADDED FOR PRINTING CSV
-
-def main():
+@hydra_task_config(args_cli.task, "rsl_rl_cfg_entry_point")
+def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agent_cfg: RslRlOnPolicyRunnerCfg):
     """Play with RSL-RL agent."""
-    #JUST ADDED FOR PRINTING CSV
-    global ep_ret, ep_len
-    #JUST ADDED FOR PRINTING CSV
-
+    # grab task name for checkpoint path
     task_name = args_cli.task.split(":")[-1]
-    # parse configuration
-    env_cfg = parse_env_cfg(
-        args_cli.task, device=args_cli.device, num_envs=args_cli.num_envs, use_fabric=not args_cli.disable_fabric
-    )
-    agent_cfg: RslRlOnPolicyRunnerCfg = cli_args.parse_rsl_rl_cfg(task_name, args_cli)
+    train_task_name = task_name.replace("-Play", "")
+
+    # override configurations with non-hydra CLI arguments
+    agent_cfg = cli_args.update_rsl_rl_cfg(agent_cfg, args_cli)
+    env_cfg.scene.num_envs = args_cli.num_envs if args_cli.num_envs is not None else env_cfg.scene.num_envs
+
+    # set the environment seed
+    # note: certain randomizations occur in the environment initialization so we set the seed here
+    env_cfg.seed = agent_cfg.seed
+    env_cfg.sim.device = args_cli.device if args_cli.device is not None else env_cfg.sim.device
 
     # specify directory for logging experiments
     log_root_path = os.path.join("logs", "rsl_rl", agent_cfg.experiment_name)
     log_root_path = os.path.abspath(log_root_path)
     print(f"[INFO] Loading experiment from directory: {log_root_path}")
     if args_cli.use_pretrained_checkpoint:
-        resume_path = get_published_pretrained_checkpoint("rsl_rl", task_name)
+        resume_path = get_published_pretrained_checkpoint("rsl_rl", train_task_name)
         if not resume_path:
             print("[INFO] Unfortunately a pre-trained checkpoint is currently unavailable for this task.")
             return
@@ -227,113 +160,31 @@ def main():
     dt = env.unwrapped.step_dt
 
     # reset environment
-    # obs, _ = env.get_observations()
-    # timestep = 0
-    # # simulate environment
-    # while simulation_app.is_running():
-    #     start_time = time.time()
-    #     # run everything in inference mode
-    #     with torch.inference_mode():
-    #         # agent stepping
-    #         actions = policy(obs)
-    #         # env stepping
-    #         obs, _, _, _ = env.step(actions) 
-    #     if args_cli.video:
-    #         timestep += 1
-    #         # Exit the play loop after recording one video
-    #         if timestep == args_cli.video_length:
-    #             break
-
-    #     # time delay for real-time evaluation
-    #     sleep_time = dt - (time.time() - start_time)
-    #     if args_cli.real_time and sleep_time > 0:
-    #         time.sleep(sleep_time)
-
-# reset environment
     obs, _ = env.get_observations()
     timestep = 0
-
     # simulate environment
     while simulation_app.is_running():
         start_time = time.time()
+        # run everything in inference mode
         with torch.inference_mode():
+            # agent stepping
             actions = policy(obs)
-            obs, reward, dones, info = env.step(actions)
+            # env stepping
+            obs, _, _, _ = env.step(actions)
+        if args_cli.video:
+            timestep += 1
+            # Exit the play loop after recording one video
+            if timestep == args_cli.video_length:
+                break
 
-        # ----- logging (per-step + per-episode) -----
-        r = _to_numpy(reward).reshape(-1)  # works for single or vectorized envs
-
-        # lazy init episode accumulators on first step (now we know num_envs)
-        if ep_ret is None:
-            ep_ret = np.zeros(r.shape[0], dtype=np.float32)
-            ep_len = np.zeros(r.shape[0], dtype=np.int32)
-
-        # update accumulators
-        ep_ret += r
-        ep_len += 1
-
-        # per-step rewards
-        if log_writer is not None:
-            for env_id, ri in enumerate(r):
-                log_writer.writerow([timestep, env_id, float(ri)])
-            if timestep % args_cli.reward_log_interval == 0:
-                log_file.flush()
-
-        # per-episode summaries when done
-# per-episode summaries when done (with coverage columns)
-        if dones is not None and ep_log_writer is not None:
-            d = _to_numpy(dones).astype(bool).reshape(-1)
-            for env_id, done in enumerate(d):
-                if not done:
-                    continue
-
-                # 1) preferred: snapshot saved by env at reset
-                cov_cells, cov_total, cov_frac = _read_cov_snapshot(env, env_id)
-
-                # 2) fallback: try to read current grid immediately (may be zeroed if auto-reset)
-                if cov_cells < 0:
-                    alt = _coverage_from_grid_now(env, env_id)
-                    if alt is not None:
-                        cov_cells, cov_total, cov_frac = alt
-
-                ep_log_writer.writerow([
-                    timestep, env_id, float(ep_ret[env_id]), int(ep_len[env_id]),
-                    int(cov_cells), int(cov_total), float(cov_frac)
-                ])
-
-                # reset for next episode
-                ep_ret[env_id] = 0.0
-                ep_len[env_id] = 0
-
-            if timestep % args_cli.reward_log_interval == 0:
-                ep_log_file.flush()
-
-        # ----- logging end -----
-
-        # advance time step **every loop**
-        timestep += 1
-
-        # video stop condition (unchanged)
-        if args_cli.video and timestep >= args_cli.video_length:
-            break
-
-        # real-time pacing
+        # time delay for real-time evaluation
         sleep_time = dt - (time.time() - start_time)
         if args_cli.real_time and sleep_time > 0:
             time.sleep(sleep_time)
 
-
     # close the simulator
     env.close()
 
-    #JUST ADDED FOR PRINTING CSV
-    if log_file is not None:
-        log_file.flush()
-        log_file.close()
-    if ep_log_file is not None:
-        ep_log_file.flush()
-        ep_log_file.close()
-    #JUST ADDED FOR PRINTING CSV
 
 if __name__ == "__main__":
     # run the main function

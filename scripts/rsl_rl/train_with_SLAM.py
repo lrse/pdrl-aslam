@@ -3,7 +3,7 @@
 #
 # SPDX-License-Identifier: BSD-3-Clause
 
-"""Script to train RL agent with RSL-RL."""
+"""Script to train RL agent with RSL-RL. It incorporates our bridge for training with SLAM plus debugging options."""
 
 """Launch Isaac Sim Simulator first."""
 
@@ -88,24 +88,16 @@ from isaaclab.utils.io import dump_pickle, dump_yaml
 
 from isaaclab_rl.rsl_rl import RslRlOnPolicyRunnerCfg, RslRlVecEnvWrapper
 
-# JUST ADDED: your wrapper import (applied AFTER RslRlVecEnvWrapper below)
-# try:
-#     from diffdrive_discrete_action_wrapper import DiffDriveDiscreteActionWrapper
-# except Exception as e:
-#     DiffDriveDiscreteActionWrapper = None
-#     print(f"[WARN] DiffDriveDiscreteActionWrapper not available: {e}")
-
-from ros2_training_wrapper import Ros2TrainingWrapper
-from go2_ros2_bridge import RobotDataManager
-
-
-
-
 import isaaclab_tasks  # noqa: F401
 from isaaclab_tasks.utils import get_checkpoint_path
 from isaaclab_tasks.utils.hydra import hydra_task_config
 
 import PDRL_ASLAM.tasks  # noqa: F401
+
+# Bridge import.
+from ros2_training_wrapper import Ros2TrainingWrapper
+
+# PLACEHOLDER: Extension template (do not remove this comment)
 
 torch.backends.cuda.matmul.allow_tf32 = True
 torch.backends.cudnn.allow_tf32 = True
@@ -172,31 +164,108 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
         print("[INFO] Recording videos during training.")
         print_dict(video_kwargs, nesting=4)
         env = gym.wrappers.RecordVideo(env, **video_kwargs)
-    
-    dm_kwargs = {
-        "env": env.unwrapped,
-        "lidar_annotators": [],   # not used by this minimal bridge
-        "cameras": [],
-        "cfg": None
-    }
 
+    # Bridge wrapper.
     env = Ros2TrainingWrapper(
-        env,
-        dm_ctor=lambda **kw: RobotDataManager(**kw),
-        dm_kwargs=dm_kwargs,
-        require_subs=True,      #CHANGED FROM TRUE
-        subs_wait_timeout=10.0,    # e.g., give cuVSLAM 10s to connect     #CHANGED FROM 10.0
-        # slam_wait_timeout=10.0,                                 #CHANGED FROM 10.0
-        # slam_require_all=True,     # wait for pose on all envs (optional but consistent)         #CHANGED FROM TRUE
+        env
     )
+
+
+##
+# DEBUGGER
+##
+
+    import numpy as np
+    import pathlib
+    import sys
+
+    np.set_printoptions(precision=4, suppress=True)
+
+    ROOT = pathlib.Path(__file__).resolve().parents[3]
+    sys.path.insert(0, str(ROOT))
+
+    from source.PDRL_ASLAM.PDRL_ASLAM.tasks.manager_based.pdrl_aslam.config import DEBUG, PROFILE
+
+    if DEBUG == "yes":
+        obs, info = env.reset()
+        dm = env.unwrapped.data_manager
+        N = dm.num_envs
+
+        lidar = env.unwrapped.scene.sensors["horizontal_scanner_1"]
+        num_rays = int(lidar.data.ray_hits_w.shape[1])
+        X_IDX, Y_IDX = num_rays, num_rays + 1
+
+        has_slam_b = (PROFILE == "SLAM_and_occupancy_grid")
+        T_IDX = (num_rays + 2) if has_slam_b else None
+        term_label = "slam_b" if has_slam_b else "no_slam"
+
+        print(f"[DEBUG] num_envs={N}  rays={num_rays}  X_IDX={X_IDX}  Y_IDX={Y_IDX}"
+              + (f"  T_IDX={T_IDX} ({term_label})" if has_slam_b else f"  ({term_label})"))
+
+        def _to_numpy_2d(x):
+            if hasattr(x, "detach"):
+                x = x.detach().cpu().numpy()
+            x = np.asarray(x)
+            if x.ndim == 2 and x.shape[0] == N:
+                return x
+            if x.ndim == 1 and x.size % N == 0:
+                return x.reshape(N, -1)
+            if isinstance(x, (list, tuple)) and len(x) == N:
+                parts = [np.asarray(p.detach().cpu().numpy() if hasattr(p, "detach") else p) for p in x]
+                return np.stack(parts, axis=0)
+            raise ValueError(f"Cannot coerce obs to (N, D); got shape={x.shape}, type={type(x)}")
+
+        def split_xy_term(obs_any):
+            base = _to_numpy_2d(obs_any["policy"] if (isinstance(obs_any, dict) and "policy" in obs_any) else obs_any)
+            D = base.shape[1]
+            if max(X_IDX, Y_IDX) >= D:
+                raise IndexError(f"(x,y) indices out of range for obs dim D={D}.")
+            xy = base[:, [X_IDX, Y_IDX]].astype(float)
+            if has_slam_b:
+                if T_IDX >= D:
+                    raise IndexError(f"slam_b index {T_IDX} out of range for obs dim D={D}.")
+                term = base[:, T_IDX].astype(float)
+            else:
+                term = np.full((N,), np.nan, dtype=float)
+            return xy, term
+
+        if isinstance(obs, dict) and "policy" in obs:
+            pol = _to_numpy_2d(obs["policy"])
+            lo = max(0, X_IDX - 3)
+            hi = min(pol.shape[1], (T_IDX if has_slam_b else Y_IDX) + 3)
+            print(f"[DEBUG] policy[0] dims {lo}..{hi-1}:\n{pol[0, lo:hi]}")
+
+        PRINT_EVERY = 1
+        DEBUG_STEPS = 1000
+        env_device = getattr(getattr(env, "unwrapped", env), "device", None)
+
+        for t in range(DEBUG_STEPS):
+            act = env.action_space.sample()
+            if not hasattr(act, "to"):
+                import torch
+                act = torch.as_tensor(act, dtype=torch.float32, device=env_device) if env_device else torch.as_tensor(act, dtype=torch.float32)
+
+            obs, rew, terminated, truncated, info = env.step(act)
+
+            if t % PRINT_EVERY == 0:
+                obs_xy, obs_term = split_xy_term(obs)
+                snapshots = getattr(env, "_last_snapshots", None)
+
+                for i in range(N):
+                    seq, xy = snapshots[i] if snapshots is not None else (None, None)
+                    diff_xy = None if xy is None else (obs_xy[i] - np.asarray(xy, dtype=float))
+                    term_val = obs_term[i]
+                    print(
+                        f"t={t} env{i}: seq={seq}  "
+                        f"obs_xy={obs_xy[i]}  slam_xy={xy}  diff={diff_xy}  "
+                        f"{term_label}={term_val if np.isfinite(term_val) else 'n/a'}"
+                    )
+
+        # Reset again, so training starts clean.
+        obs, info = env.reset()
 
     # wrap around environment for rsl-rl
     env = RslRlVecEnvWrapper(env, clip_actions=agent_cfg.clip_actions)
-
-    # JUST ADDED: apply your wrapper AFTER the RslRlVecEnvWrapper (matches your skrl order)
-    # if DiffDriveDiscreteActionWrapper is not None:
-    #     print("[INFO] Applying DiffDriveDiscreteActionWrapper after RslRlVecEnvWrapper.")
-    #     env = DiffDriveDiscreteActionWrapper(env)
 
     # create runner from rsl-rl
     runner = OnPolicyRunner(env, agent_cfg.to_dict(), log_dir=log_dir, device=agent_cfg.device)
@@ -205,6 +274,7 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
     # load the checkpoint
     if agent_cfg.resume or agent_cfg.algorithm.class_name == "Distillation":
         print(f"[INFO]: Loading model checkpoint from: {resume_path}")
+        # load previously trained model
         runner.load(resume_path)
 
     # dump the configuration into log-directory

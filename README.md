@@ -1,135 +1,96 @@
-# Template for Isaac Lab Projects
+Parallel Deep Reinforcement Learning for Active SLAM
+Overview
+This repository provides the codes used for ICRA 2026 submission. It includes the bridge to train RL agents on Isaac Lab with ROS2 topics data, the Isaac ROS Visual SLAM configuration, the environments, and some obtained policies.
+Maintainer: Private.
+Affiliation: Private.
+Contact: Private.
 
-## Overview
+Requirements
+This software stack was tested on:
+Ubuntu 22.04.
+NVIDIA driver 570.172.08.
+CUDA 12.8.
+Installation
+Install ROS2 Humble following the documentation's instructions. Remember to always “source /opt/ros/humble/setup.bash” on any new CLI.
+Create a new conda env with python 3.10.18.
+Install Isaac Gym 4.5 and Isaac Lab 2.1 following the documentation's instructions. Make sure to include the installation of rsl_rl since this is the RL library we will use for training.
+Download Isaac ROS Visual SLAM container following the documentation's instructions.
+Clone this repository.
+In case of wanting to visualize an occupancy grid, as in our video, we recommend downloading slam_toolbox following the documentation's instructions. The LiDAR topics are already configured to be subscribed for this package.
 
-This project/repository serves as a template for building projects or extensions based on Isaac Lab.
-It allows you to develop in an isolated environment, outside of the core Isaac Lab repository.
 
-**Key Features:**
+Usage
 
-- `Isolation` Work outside the core Isaac Lab repository, ensuring that your development efforts remain self-contained.
-- `Flexibility` This template is set up to allow your code to be run as an extension in Omniverse.
+We will always assume that we are inside the PDRL_ASLAM folder.
 
-**Keywords:** extension, template, isaaclab
+We will only modify the config.py file. 
 
-## Installation
+The training/testing with SLAM is designed to work with one or two environments in parallel in our machine (Intel Core i7 CPU, an NVIDIA RTX 4060 GPU, and 32 GB of RAM). However, the default settings consider two environments. 
 
-- Install Isaac Lab by following the [installation guide](https://isaac-sim.github.io/IsaacLab/main/source/setup/installation/index.html).
-  We recommend using the conda installation as it simplifies calling Python scripts from the terminal.
+More agents can be easily added with minimal additions if the hardware allows it. 
 
-- Clone or copy this project/repository separately from the Isaac Lab installation (i.e. outside the `IsaacLab` directory):
+If anything does not work, first reboot and retry, since that usually resolves common issues.
 
-- Using a python interpreter that has Isaac Lab installed, install the library in editable mode using:
+0.   Activate your conda environment (generally this is: conda activate env_isaaclab if you followed the installation guidelines) and source ROS 2: 
+source /opt/ros/humble/setup.bash
+Train without SLAM:
+Run:
+python scripts/rsl_rl/train.py   --task Template-Pdrl-Aslam-v0  --num_envs 512 --headless
+This will run the initial training without SLAM with 512 environments in parallel and no visualization. 
+If visualization is wanted run instead: 
+python scripts/rsl_rl/train.py   --task Template-Pdrl-Aslam-v0  --num_envs 512
 
-    ```bash
-    # use 'PATH_TO_isaaclab.sh|bat -p' instead of 'python' if Isaac Lab is not installed in Python venv or conda
-    python -m pip install -e source/PDRL_ASLAM
+Play without SLAM:
+By default, the loaded policy is the last model of the last run of the experiment folder PDRL_ASLAM/logs/rsl_rl/PDRL_ASLAM_v0
+However, an already trained policy is saved in PDRL_ASLAM/demos
+To run this already trained agent run:
+python scripts/rsl_rl/play.py --task Template-Pdrl-Aslam-v0 --num_envs 1 --checkpoint demos/trained_no_SLAM_agent.pt 
+Different environments can be tested by changing the variable ENVIRONMENT in the config.py file.
 
-- Verify that the extension is correctly installed by:
+Retrain with SLAM:
+Open the config.py file and change the default settings so that:
+PROFILE = “SLAM_and_occupancy_grid”
+PHASE = “retrain”
+The difference between “train” and “retrain” is due to the different PPO hyperparameters in each case. These can be noticed on the rsl_rl_ppo_cfg.py file.
+Run the cuvslam_launcher.py file and wait until everything is set. The command to run it is: 
+python3 cuvslam_launcher.py
+Then run:
+python scripts/rsl_rl/train_with_SLAM.py \
+  --task Template-Pdrl-Aslam-v0  --num_envs 2 --headless \
+  --resume \
+  agent.load_run=Trained_NO_SLAM \
+  agent.load_checkpoint=trained_no_SLAM.pt \
+--enable_cameras
+This will run the retraining with SLAM with 2 environments in parallel and no visualization. 
+If visualization is wanted, run instead: 
+python scripts/rsl_rl/train_with_SLAM.py \
+  --task Template-Pdrl-Aslam-v0  --num_envs 2 \
+  --resume \
+  agent.load_run=Trained_NO_SLAM \
+  agent.load_checkpoint=trained_no_SLAM.pt \
+--enable_cameras
 
-    - Listing the available tasks:
+Play with SLAM:
+Open the config.py file and change the default settings so that:
+PROFILE = “SLAM_and_occupancy_grid”
+PHASE = “play”
+Run the cuvslam_launcher.py file and wait until everything is set. The command to run it is: 
+python3 cuvslam_launcher.py --single
+Notice that now we are using the flag --single since we want to play only one agent for visualization.
+By default, the loaded policy is the last model of the last run of the experiment folder PDRL_ASLAM/logs/rsl_rl/PDRL_ASLAM_v0
+However, an already trained policy is saved in 
+PDRL_ASLAM/demos
+To run this already trained agent run:
+python scripts/rsl_rl/play_with_SLAM.py --task Template-Pdrl-Aslam-v0 --num_envs 1 --checkpoint demos/retrained_with_SLAM_agent.pt --enable_cameras
+Different environments can be tested by changing the variable ENVIRONMENT in the config.py file.
 
-        Note: It the task name changes, it may be necessary to update the search pattern `"Template-"`
-        (in the `scripts/list_envs.py` file) so that it can be listed.
+Training debug:
+Open the config.py file and change the settings so that:
+DEBUG = “yes”
+Run the cuvslam_launcher.py file and wait until everything is set.
+python scripts/rsl_rl/train_with_SLAM.py --task Template-Pdrl-Aslam-v0  --num_envs 2
 
-        ```bash
-        # use 'FULL_PATH_TO_isaaclab.sh|bat -p' instead of 'python' if Isaac Lab is not installed in Python venv or conda
-        python scripts/list_envs.py
-        ```
+Submission video
 
-    - Running a task:
+TODO UPLOAD VIDEO.
 
-        ```bash
-        # use 'FULL_PATH_TO_isaaclab.sh|bat -p' instead of 'python' if Isaac Lab is not installed in Python venv or conda
-        python scripts/<RL_LIBRARY>/train.py --task=<TASK_NAME>
-        ```
-
-    - Running a task with dummy agents:
-
-        These include dummy agents that output zero or random agents. They are useful to ensure that the environments are configured correctly.
-
-        - Zero-action agent
-
-            ```bash
-            # use 'FULL_PATH_TO_isaaclab.sh|bat -p' instead of 'python' if Isaac Lab is not installed in Python venv or conda
-            python scripts/zero_agent.py --task=<TASK_NAME>
-            ```
-        - Random-action agent
-
-            ```bash
-            # use 'FULL_PATH_TO_isaaclab.sh|bat -p' instead of 'python' if Isaac Lab is not installed in Python venv or conda
-            python scripts/random_agent.py --task=<TASK_NAME>
-            ```
-
-### Set up IDE (Optional)
-
-To setup the IDE, please follow these instructions:
-
-- Run VSCode Tasks, by pressing `Ctrl+Shift+P`, selecting `Tasks: Run Task` and running the `setup_python_env` in the drop down menu.
-  When running this task, you will be prompted to add the absolute path to your Isaac Sim installation.
-
-If everything executes correctly, it should create a file .python.env in the `.vscode` directory.
-The file contains the python paths to all the extensions provided by Isaac Sim and Omniverse.
-This helps in indexing all the python modules for intelligent suggestions while writing code.
-
-### Setup as Omniverse Extension (Optional)
-
-We provide an example UI extension that will load upon enabling your extension defined in `source/PDRL_ASLAM/PDRL_ASLAM/ui_extension_example.py`.
-
-To enable your extension, follow these steps:
-
-1. **Add the search path of this project/repository** to the extension manager:
-    - Navigate to the extension manager using `Window` -> `Extensions`.
-    - Click on the **Hamburger Icon**, then go to `Settings`.
-    - In the `Extension Search Paths`, enter the absolute path to the `source` directory of this project/repository.
-    - If not already present, in the `Extension Search Paths`, enter the path that leads to Isaac Lab's extension directory directory (`IsaacLab/source`)
-    - Click on the **Hamburger Icon**, then click `Refresh`.
-
-2. **Search and enable your extension**:
-    - Find your extension under the `Third Party` category.
-    - Toggle it to enable your extension.
-
-## Code formatting
-
-We have a pre-commit template to automatically format your code.
-To install pre-commit:
-
-```bash
-pip install pre-commit
-```
-
-Then you can run pre-commit with:
-
-```bash
-pre-commit run --all-files
-```
-
-## Troubleshooting
-
-### Pylance Missing Indexing of Extensions
-
-In some VsCode versions, the indexing of part of the extensions is missing.
-In this case, add the path to your extension in `.vscode/settings.json` under the key `"python.analysis.extraPaths"`.
-
-```json
-{
-    "python.analysis.extraPaths": [
-        "<path-to-ext-repo>/source/PDRL_ASLAM"
-    ]
-}
-```
-
-### Pylance Crash
-
-If you encounter a crash in `pylance`, it is probable that too many files are indexed and you run out of memory.
-A possible solution is to exclude some of omniverse packages that are not used in your project.
-To do so, modify `.vscode/settings.json` and comment out packages under the key `"python.analysis.extraPaths"`
-Some examples of packages that can likely be excluded are:
-
-```json
-"<path-to-isaac-sim>/extscache/omni.anim.*"         // Animation packages
-"<path-to-isaac-sim>/extscache/omni.kit.*"          // Kit UI tools
-"<path-to-isaac-sim>/extscache/omni.graph.*"        // Graph UI tools
-"<path-to-isaac-sim>/extscache/omni.services.*"     // Services tools
-...
-```

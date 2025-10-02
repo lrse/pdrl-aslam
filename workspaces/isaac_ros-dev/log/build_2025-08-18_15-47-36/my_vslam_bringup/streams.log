@@ -1,0 +1,23 @@
+[0.446s] Invoking command in '/home/wakkow/workspaces/isaac_ros-dev/build/my_vslam_bringup': CONDA_PROMPT_MODIFIER=(base) PYTHONPATH=/home/wakkow/workspaces/isaac_ros-dev/build/my_vslam_bringup/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/wakkow/workspaces/isaac_ros-dev/install/my_vslam_bringup/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /home/wakkow/workspaces/isaac_ros-dev/build/my_vslam_bringup/build --no-deps symlink_data
+[0.608s] running develop
+[0.692s] running egg_info
+[0.692s] creating my_vslam_bringup.egg-info
+[0.692s] writing my_vslam_bringup.egg-info/PKG-INFO
+[0.692s] writing dependency_links to my_vslam_bringup.egg-info/dependency_links.txt
+[0.692s] writing entry points to my_vslam_bringup.egg-info/entry_points.txt
+[0.692s] writing requirements to my_vslam_bringup.egg-info/requires.txt
+[0.693s] writing top-level names to my_vslam_bringup.egg-info/top_level.txt
+[0.693s] writing manifest file 'my_vslam_bringup.egg-info/SOURCES.txt'
+[0.693s] reading manifest file 'my_vslam_bringup.egg-info/SOURCES.txt'
+[0.694s] writing manifest file 'my_vslam_bringup.egg-info/SOURCES.txt'
+[0.694s] running build_ext
+[0.694s] Creating /home/wakkow/workspaces/isaac_ros-dev/install/my_vslam_bringup/lib/python3.10/site-packages/my-vslam-bringup.egg-link (link to .)
+[0.695s] 
+[0.695s] Installed /home/wakkow/workspaces/isaac_ros-dev/build/my_vslam_bringup
+[0.695s] running symlink_data
+[0.695s] creating /home/wakkow/workspaces/isaac_ros-dev/install/my_vslam_bringup/share/ament_index
+[0.695s] creating /home/wakkow/workspaces/isaac_ros-dev/install/my_vslam_bringup/share/ament_index/resource_index
+[0.695s] creating /home/wakkow/workspaces/isaac_ros-dev/install/my_vslam_bringup/share/ament_index/resource_index/packages
+[0.695s] symbolically linking /home/wakkow/workspaces/isaac_ros-dev/build/my_vslam_bringup/resource/my_vslam_bringup -> /home/wakkow/workspaces/isaac_ros-dev/install/my_vslam_bringup/share/ament_index/resource_index/packages
+[0.695s] symbolically linking /home/wakkow/workspaces/isaac_ros-dev/build/my_vslam_bringup/package.xml -> /home/wakkow/workspaces/isaac_ros-dev/install/my_vslam_bringup/share/my_vslam_bringup
+[0.710s] Invoked command in '/home/wakkow/workspaces/isaac_ros-dev/build/my_vslam_bringup' returned '0': CONDA_PROMPT_MODIFIER=(base) PYTHONPATH=/home/wakkow/workspaces/isaac_ros-dev/build/my_vslam_bringup/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/home/wakkow/workspaces/isaac_ros-dev/install/my_vslam_bringup/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /home/wakkow/workspaces/isaac_ros-dev/build/my_vslam_bringup/build --no-deps symlink_data
