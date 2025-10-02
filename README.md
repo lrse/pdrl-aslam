@@ -83,12 +83,14 @@ The difference between “train” and “retrain” is due to the different PPO
 
 Then run:
 
-```python scripts/rsl_rl/train_with_SLAM.py \
+```
+python scripts/rsl_rl/train_with_SLAM.py \
   --task Template-Pdrl-Aslam-v0  --num_envs 2 --headless \
   --resume \
   agent.load_run=Trained_NO_SLAM \
   agent.load_checkpoint=trained_no_SLAM.pt \
---enable_cameras```
+--enable_cameras
+```
 
 This will run the retraining with SLAM with 2 environments in parallel and no visualization.
 
