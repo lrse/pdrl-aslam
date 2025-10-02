@@ -1,0 +1,56 @@
+rosbag2_bagfile_information:
+  version: 5
+  storage_identifier: sqlite3
+  duration:
+    nanoseconds: 2659167922
+  starting_time:
+    nanoseconds_since_epoch: 1665717199099642989
+  message_count: 775
+  topics_with_message_count:
+    - topic_metadata:
+        name: /right/image_rect
+        type: sensor_msgs/msg/Image
+        serialization_format: cdr
+        offered_qos_profiles: ""
+      message_count: 97
+    - topic_metadata:
+        name: /left/image_rect
+        type: sensor_msgs/msg/Image
+        serialization_format: cdr
+        offered_qos_profiles: ""
+      message_count: 97
+    - topic_metadata:
+        name: /tf
+        type: tf2_msgs/msg/TFMessage
+        serialization_format: cdr
+        offered_qos_profiles: ""
+      message_count: 291
+    - topic_metadata:
+        name: /clock
+        type: rosgraph_msgs/msg/Clock
+        serialization_format: cdr
+        offered_qos_profiles: ""
+      message_count: 97
+    - topic_metadata:
+        name: /right/camera_info_rect
+        type: sensor_msgs/msg/CameraInfo
+        serialization_format: cdr
+        offered_qos_profiles: ""
+      message_count: 96
+    - topic_metadata:
+        name: /left/camera_info_rect
+        type: sensor_msgs/msg/CameraInfo
+        serialization_format: cdr
+        offered_qos_profiles: ""
+      message_count: 97
+  compression_format: ""
+  compression_mode: ""
+  relative_file_paths:
+    - quickstart_0.db3
+  files:
+    - path: quickstart_0.db3
+      starting_time:
+        nanoseconds_since_epoch: 1665717199099642989
+      duration:
+        nanoseconds: 2659167922
+      message_count: 775

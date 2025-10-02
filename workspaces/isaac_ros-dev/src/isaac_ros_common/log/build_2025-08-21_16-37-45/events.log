@@ -1,0 +1,49 @@
+[0.000000] (-) TimerEvent: {}
+[0.000530] (-) JobUnselected: {'identifier': 'isaac_common'}
+[0.000567] (-) JobUnselected: {'identifier': 'isaac_common_py'}
+[0.000578] (-) JobUnselected: {'identifier': 'isaac_ros_apriltag_interfaces'}
+[0.000587] (-) JobUnselected: {'identifier': 'isaac_ros_bi3d_interfaces'}
+[0.000595] (-) JobUnselected: {'identifier': 'isaac_ros_common'}
+[0.000603] (-) JobUnselected: {'identifier': 'isaac_ros_launch_utils'}
+[0.000610] (-) JobUnselected: {'identifier': 'isaac_ros_nitros_bridge_interfaces'}
+[0.000618] (-) JobUnselected: {'identifier': 'isaac_ros_nova_interfaces'}
+[0.000625] (-) JobUnselected: {'identifier': 'isaac_ros_pointcloud_interfaces'}
+[0.000633] (-) JobUnselected: {'identifier': 'isaac_ros_r2b_galileo'}
+[0.000640] (-) JobUnselected: {'identifier': 'isaac_ros_rosbag_utils'}
+[0.000648] (-) JobUnselected: {'identifier': 'isaac_ros_tensor_list_interfaces'}
+[0.000655] (-) JobUnselected: {'identifier': 'isaac_ros_test'}
+[0.000663] (-) JobUnselected: {'identifier': 'isaac_ros_test_cmake'}
+[0.000673] (my_vslam_bringup) JobQueued: {'identifier': 'my_vslam_bringup', 'dependencies': OrderedDict()}
+[0.000684] (my_vslam_bringup) JobStarted: {'identifier': 'my_vslam_bringup'}
+[0.099783] (-) TimerEvent: {}
+[0.199988] (-) TimerEvent: {}
+[0.300224] (-) TimerEvent: {}
+[0.400702] (-) TimerEvent: {}
+[0.501018] (-) TimerEvent: {}
+[0.601250] (-) TimerEvent: {}
+[0.701451] (-) TimerEvent: {}
+[0.798925] (my_vslam_bringup) Command: {'cmd': ['/usr/bin/python3', '-W', 'ignore:setup.py install is deprecated', '-W', 'ignore:easy_install command is deprecated', 'setup.py', 'develop', '--editable', '--build-directory', '/workspaces/isaac_ros-dev/build/my_vslam_bringup/build', '--no-deps', 'symlink_data'], 'cwd': '/workspaces/isaac_ros-dev/build/my_vslam_bringup', 'env': {'DALI_BUILD': '16741769', 'LIBRARY_PATH': '/usr/local/cuda/lib64/stubs:', 'PYTHONWARNINGS': 'ignore:::setuptools.command.install,ignore:::setuptools.command.easy_install,ignore:::pkg_resources,ignore:::setuptools.command.develop', 'USER': 'wakkow', 'TRT_INC_PATH': '/usr/include/x86_64-linux-gnu', 'TF_ADJUST_SATURATION_FUSED': '1', 'CUSOLVER_VERSION': '11.6.4.38', 'HOSTNAME': 'wakkow-Nitro-ANV15-51', 'CUTENSOR_VERSION': '2.0.2.5', 'SHLVL': '1', 'LD_LIBRARY_PATH': '/opt/ros/humble/opt/rviz_ogre_vendor/lib:/opt/ros/humble/lib/x86_64-linux-gnu:/opt/ros/humble/lib:/usr/local/libcudss-linux-0.3.0.9_cuda12-archive/lib:/opt/hpcx/ucc/lib/:/opt/hpcx/ucx/lib/:/usr/local/cuda/compat/lib:/usr/local/nvidia/lib:/usr/local/nvidia/lib64:/opt/tritonserver/lib', 'HOME': '/home/admin', 'NVIDIA_TRITON_SERVER_VERSION': '24.08', 'OLDPWD': '/workspaces/isaac_ros-dev', 'HOST_USER_GID': '1000', 'CUDA_CACHE_DISABLE': '1', 'ROS_PYTHON_VERSION': '3', 'MODEL_OPT_VERSION': '0.15.0', 'ENV': '/etc/shinit_v2', 'RDMACORE_VERSION': '39.0', 'NVJPEG_VERSION': '12.3.3.23', 'NVIDIA_BUILD_ID': '107631419', 'CUDA_VERSION': '12.6.0.022', 'TCMALLOC_RELEASE_RATE': '200', 'CUBLAS_VERSION': '12.6.0.22', 'NSIGHT_SYSTEMS_VERSION': '2024.4.2.133', 'ROS_DISTRO': 'humble', 'OPAL_PREFIX': '/opt/hpcx/ompi', 'NVIDIA_REQUIRE_CUDA': 'cuda>=9.0', 'TRT_VERSION': '10.3.0.26+cuda12.5.1.007', 'GDRCOPY_VERSION': '2.3.1-1', '_': '/usr/bin/colcon', 'ROS_VERSION': '2', 'NVIDIA_DRIVER_CAPABILITIES': 'all', 'POLYGRAPHY_VERSION': '0.49.13', 'CURAND_VERSION': '10.3.7.37', 'MOFED_VERSION': '5.4-rdmacore39.0', 'USERNAME': 'admin', 'TERM': 'xterm', 'ISAAC_ROS_WS': '/workspaces/isaac_ros-dev', 'ROS_LOCALHOST_ONLY': '0', 'TRANSFORMER_ENGINE_VERSION': '1.9', 'PATH': '/opt/ros/humble/bin:/opt/ros/humble/vcstool/scripts:/opt/tritonserver/bin:/usr/local/mpi/bin:/usr/local/nvidia/bin:/usr/local/cuda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/ucx/bin', 'HOST_USER_UID': '1000', 'CUDSS_DIR': '/usr/local/libcudss-linux-0.3.0.9_cuda12-archive', 'CUDA_DRIVER_VERSION': '560.35.03', '_CUDA_COMPAT_STATUS': 'System has unsupported display driver / cuda driver combination (CUDA_ERROR_SYSTEM_DRIVER_MISMATCH) cuInit()=803', 'DISPLAY': ':0', 'NVIDIA_PRODUCT_NAME': 'Triton Server', 'LANG': 'en_US.UTF-8', 'RMW_IMPLEMENTATION': 'rmw_fastrtps_cpp', 'NPP_VERSION': '12.3.1.23', 'ROS_ROOT': '/opt/ros/humble', 'UCX_MEM_EVENTS': 'no', 'CUFFT_VERSION': '11.2.6.28', 'SSH_AUTH_SOCK': '/ssh-agent', 'TF_ENABLE_WINOGRAD_NONFUSED': '1', 'AMENT_PREFIX_PATH': '/opt/ros/humble', 'CUDNN_VERSION': '9.3.0.75', 'NSIGHT_COMPUTE_VERSION': '2024.3.0.15', 'DALI_VERSION': '1.40.0', 'DEBIAN_FRONTEND': 'noninteractive', 'SHELL': '/bin/bash', 'DCGM_VERSION': '3.2.6', 'CUDNN_FRONTEND_VERSION': '1.5.2', 'OPENMPI_VERSION': '4.1.7', 'TRTOSS_VERSION': '24.08', 'OMPI_MCA_coll_hcoll_enable': '0', 'CUSPARSE_VERSION': '12.5.2.23', 'NVIDIA_REQUIRE_JETPACK_HOST_MOUNTS': '', 'TRITON_SERVER_GPU_ENABLED': '1', 'TRITON_SERVER_VERSION': '2.49.0', 'BASH_ENV': '/etc/bash.bashrc', 'PWD': '/workspaces/isaac_ros-dev/build/my_vslam_bringup', 'CUSPARSELT_VERSION': '0.6.2.3', 'PYTHONPATH': '/workspaces/isaac_ros-dev/build/my_vslam_bringup/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/workspaces/isaac_ros-dev/install/my_vslam_bringup/lib/python3.10/site-packages:/opt/ros/humble/lib/python3.10/site-packages:/opt/ros/humble/local/lib/python3.10/dist-packages:/opt/ros/humble/vcstool:/opt/tritonserver/backends/dali/wheel/dali:', '_CUDA_COMPAT_PATH': '/usr/local/cuda/compat', 'TRITON_SERVER_USER': 'triton-server', 'TF_ADJUST_HUE_FUSED': '1', 'NVIDIA_VISIBLE_DEVICES': 'all', 'NCCL_VERSION': '2.22.3', 'COLCON': '1', 'OPENUCX_VERSION': '1.17.0', 'HPCX_VERSION': '2.19', 'CMAKE_PREFIX_PATH': '/usr/local/libcudss-linux-0.3.0.9_cuda12-archive:', 'TF_AUTOTUNE_THRESHOLD': '2', 'TRT_LIB_PATH': '/usr/lib/x86_64-linux-gnu'}, 'shell': False}
+[0.801601] (-) TimerEvent: {}
+[0.901920] (-) TimerEvent: {}
+[1.002108] (-) TimerEvent: {}
+[1.065960] (my_vslam_bringup) StdoutLine: {'line': b'running develop\n'}
+[1.102300] (-) TimerEvent: {}
+[1.202493] (-) TimerEvent: {}
+[1.238060] (my_vslam_bringup) StdoutLine: {'line': b'running egg_info\n'}
+[1.247665] (my_vslam_bringup) StdoutLine: {'line': b'writing my_vslam_bringup.egg-info/PKG-INFO\n'}
+[1.247897] (my_vslam_bringup) StdoutLine: {'line': b'writing dependency_links to my_vslam_bringup.egg-info/dependency_links.txt\n'}
+[1.248006] (my_vslam_bringup) StdoutLine: {'line': b'writing requirements to my_vslam_bringup.egg-info/requires.txt\n'}
+[1.248070] (my_vslam_bringup) StdoutLine: {'line': b'writing top-level names to my_vslam_bringup.egg-info/top_level.txt\n'}
+[1.302589] (-) TimerEvent: {}
+[1.402813] (-) TimerEvent: {}
+[1.491807] (my_vslam_bringup) StdoutLine: {'line': b"reading manifest file 'my_vslam_bringup.egg-info/SOURCES.txt'\n"}
+[1.492555] (my_vslam_bringup) StdoutLine: {'line': b"writing manifest file 'my_vslam_bringup.egg-info/SOURCES.txt'\n"}
+[1.502923] (-) TimerEvent: {}
+[1.531574] (my_vslam_bringup) StdoutLine: {'line': b'running build_ext\n'}
+[1.542167] (my_vslam_bringup) StdoutLine: {'line': b'Creating /workspaces/isaac_ros-dev/install/my_vslam_bringup/lib/python3.10/site-packages/my-vslam-bringup.egg-link (link to .)\n'}
+[1.542606] (my_vslam_bringup) StdoutLine: {'line': b'\n'}
+[1.542729] (my_vslam_bringup) StdoutLine: {'line': b'Installed /workspaces/isaac_ros-dev/build/my_vslam_bringup\n'}
+[1.542816] (my_vslam_bringup) StdoutLine: {'line': b'running symlink_data\n'}
+[1.575835] (my_vslam_bringup) CommandEnded: {'returncode': 0}
+[1.586640] (my_vslam_bringup) JobEnded: {'identifier': 'my_vslam_bringup', 'rc': 0}
+[1.587174] (-) EventReactorShutdown: {}

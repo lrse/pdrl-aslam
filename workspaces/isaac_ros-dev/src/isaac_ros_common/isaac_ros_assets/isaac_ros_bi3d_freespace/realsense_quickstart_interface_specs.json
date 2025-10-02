@@ -1,0 +1,7 @@
+{
+    "image_resolution": {
+        "width": 1280,
+        "height": 720
+    },
+    "camera_frame": "camera_link"
+}

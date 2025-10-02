@@ -1,0 +1,15 @@
+[0.721s] Invoking command in '/workspaces/isaac_ros-dev/build/my_vslam_bringup': PYTHONPATH=/workspaces/isaac_ros-dev/build/my_vslam_bringup/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/workspaces/isaac_ros-dev/install/my_vslam_bringup/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /workspaces/isaac_ros-dev/build/my_vslam_bringup/build --no-deps symlink_data
+[0.986s] running develop
+[1.147s] running egg_info
+[1.156s] writing my_vslam_bringup.egg-info/PKG-INFO
+[1.156s] writing dependency_links to my_vslam_bringup.egg-info/dependency_links.txt
+[1.156s] writing requirements to my_vslam_bringup.egg-info/requires.txt
+[1.156s] writing top-level names to my_vslam_bringup.egg-info/top_level.txt
+[1.318s] reading manifest file 'my_vslam_bringup.egg-info/SOURCES.txt'
+[1.319s] writing manifest file 'my_vslam_bringup.egg-info/SOURCES.txt'
+[1.370s] running build_ext
+[1.380s] Creating /workspaces/isaac_ros-dev/install/my_vslam_bringup/lib/python3.10/site-packages/my-vslam-bringup.egg-link (link to .)
+[1.381s] 
+[1.381s] Installed /workspaces/isaac_ros-dev/build/my_vslam_bringup
+[1.381s] running symlink_data
+[1.413s] Invoked command in '/workspaces/isaac_ros-dev/build/my_vslam_bringup' returned '0': PYTHONPATH=/workspaces/isaac_ros-dev/build/my_vslam_bringup/prefix_override:/usr/lib/python3/dist-packages/colcon_core/task/python/colcon_distutils_commands:/workspaces/isaac_ros-dev/install/my_vslam_bringup/lib/python3.10/site-packages:${PYTHONPATH} /usr/bin/python3 -W ignore:setup.py install is deprecated -W ignore:easy_install command is deprecated setup.py develop --editable --build-directory /workspaces/isaac_ros-dev/build/my_vslam_bringup/build --no-deps symlink_data

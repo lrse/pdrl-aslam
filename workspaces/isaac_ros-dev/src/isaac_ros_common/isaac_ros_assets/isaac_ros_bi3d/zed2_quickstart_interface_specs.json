@@ -1,0 +1,12 @@
+{
+    "camera_model": "zed2",
+    "camera_frame": "zed2_base_link",
+    "camera_resolution": {
+        "width": 1280,
+        "height": 720
+    },
+    "image_resolution": {
+        "width": 1280,
+        "height": 720
+    }
+}
