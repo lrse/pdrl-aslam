@@ -146,10 +146,8 @@ Run the cuvslam_launcher.py file and wait until everything is set.
 
 ## Submission video ##
 
-<video controls width="600" muted>
-  <source src="video/ICRA26_3061_VI_i.mp4" type="video/mp4" />
-  Sorry, your browser doesn’t support embedded videos.
-</video>
+[Open the video file](video/ICRA26_3061_VI_i.mp4)
+
 
 
 
