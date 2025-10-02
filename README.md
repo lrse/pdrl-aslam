@@ -96,12 +96,14 @@ This will run the retraining with SLAM with 2 environments in parallel and no vi
 
 - If visualization is wanted, run instead:
 
-```python scripts/rsl_rl/train_with_SLAM.py \
+```
+python scripts/rsl_rl/train_with_SLAM.py \
   --task Template-Pdrl-Aslam-v0  --num_envs 2 \
   --resume \
   agent.load_run=Trained_NO_SLAM \
   agent.load_checkpoint=trained_no_SLAM.pt \
---enable_cameras```
+--enable_cameras
+```
 
 **4. Play with SLAM:**
 
@@ -124,7 +126,9 @@ PDRL_ASLAM/demos
 
 - To run this already trained agent run:
 
-```python scripts/rsl_rl/play_with_SLAM.py --task Template-Pdrl-Aslam-v0 --num_envs 1 --checkpoint demos/retrained_with_SLAM_agent.pt --enable_cameras```
+```
+python scripts/rsl_rl/play_with_SLAM.py --task Template-Pdrl-Aslam-v0 --num_envs 1 --checkpoint demos/retrained_with_SLAM_agent.pt --enable_cameras
+```
 
 Different environments can be tested by changing the variable ENVIRONMENT in the config.py file.
 
