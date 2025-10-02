@@ -146,7 +146,8 @@ Run the cuvslam_launcher.py file and wait until everything is set.
 
 ## Submission video ##
 
-https://raw.githubusercontent.com/lrse/pdrl-aslam/main/video/ICRA26_3061_VI_i.mp4
+https://github.com/user-attachments/assets/6721a4da-4fc1-4057-985d-48fd6a8f1d9b
+
 
 
 
