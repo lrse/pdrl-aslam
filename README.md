@@ -34,8 +34,7 @@ This software stack was tested on:
 
 ## Usage ##
 
-- We will always assume that we are inside the PDRL_ASLAM folder.
-- We will only modify the config.py file.
+- We will only modify the config.py file, which is inside source/PDRL_ASLAM/PDRL_ASLAM/tasks/manager_based/pdrl_aslam.
 - The training/testing with SLAM is designed to work with one or two environments in parallel in our machine (Intel Core i7 CPU, an NVIDIA RTX 4060 GPU, and 32 GB of RAM). However, the default settings consider two environments. 
 - More agents can be easily added with minimal additions if the hardware allows it. 
 - If anything does not work, first reboot and retry, since that usually resolves common issues.
@@ -58,9 +57,9 @@ This will run the initial training without SLAM with 512 environments in paralle
 
 **2. Play without SLAM:**
 
-By default, the loaded policy is the last model of the last run of the experiment folder PDRL_ASLAM/logs/rsl_rl/PDRL_ASLAM_v0
+By default, the loaded policy is the last model of the last run of the experiment folder logs/rsl_rl/PDRL_ASLAM_v0
 
-However, an already trained policy is saved in PDRL_ASLAM/demos
+However, an already trained policy is saved in demos folder.
 
 To run this already trained agent run:
 
@@ -121,10 +120,9 @@ PHASE = “play”
 
 Notice that now we are using the flag --single since we want to play only one agent for visualization.
 
-By default, the loaded policy is the last model of the last run of the experiment folder PDRL_ASLAM/logs/rsl_rl/PDRL_ASLAM_v0
+By default, the loaded policy is the last model of the last run of the experiment folder logs/rsl_rl/PDRL_ASLAM_v0
 
-However, an already trained policy is saved in 
-PDRL_ASLAM/demos
+However, an already trained policy is saved in demos
 
 - To run this already trained agent run:
 
