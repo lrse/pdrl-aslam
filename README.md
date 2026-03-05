@@ -1,8 +1,8 @@
-# Parallel Deep Reinforcement Learning for Active SLAM
+# Massive Parallel Deep Reinforcement Learning for Active SLAM
 
 
 ## Overview ##
-This repository provides the codes used for ICRA 2026 submission. It includes the bridge to train RL agents on Isaac Lab with ROS2 topics data, the Isaac ROS Visual SLAM configuration, the environments, and some obtained policies.
+This repository provides the codes used for IROS 2026 submission. It includes the bridge to train RL agents on Isaac Sim/Lab with ROS2 topics data.
 
 
 **Maintainer**: Private.
@@ -26,7 +26,7 @@ This software stack was tested on:
 
 1. Install ROS2 Humble following the [documentation's instructions](https://docs.ros.org/en/humble/Installation.html). Remember to always “source /opt/ros/humble/setup.bash” on any new CLI.
 2. Create a new conda env with python 3.10.18.
-3. Install Isaac Gym 4.5 and Isaac Lab 2.1 following the [documentation's instructions](https://isaac-sim.github.io/IsaacLab/v2.1.0/source/setup/installation/binaries_installation.html). Make sure to include the installation of rsl_rl since this is the RL library we will use for training.
+3. Install Isaac Gym 4.5 and Isaac Lab 2.3.2 following the [documentation's instructions](https://isaac-sim.github.io/IsaacLab/v2.1.0/source/setup/installation/binaries_installation.html). Make sure to include the installation of rsl_rl since this is the RL library we will use for training.
 4. Download Isaac ROS Visual SLAM container following the [documentation's instructions](https://nvidia-isaac-ros.github.io/repositories_and_packages/isaac_ros_visual_slam/isaac_ros_visual_slam/index.html).
 5. Clone this repository.
 6. In case of wanting to visualize an occupancy grid, as in our video, we recommend downloading slam_toolbox following the [documentation's instructions](https://docs.ros.org/en/humble/p/slam_toolbox/). The LiDAR topics are already configured to be subscribed for this package.
