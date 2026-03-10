@@ -2,7 +2,7 @@
 
 
 ## Overview ##
-This repository provides the codes used for IROS 2026 submission. It includes the bridge to train RL agents on Isaac Sim/Lab with ROS2 topics data.
+This repository provides the codes used for IROS 2026 submission. It includes our training bridge wrapper to train RL agents on Isaac Sim/Lab with ROS2 topics data.
 
 
 **Maintainer**: Private.
