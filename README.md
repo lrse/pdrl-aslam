@@ -48,7 +48,7 @@ This software stack was tested on:
 - Run:
 ```python scripts/rsl_rl/train.py   --task Isaac-Iros-Mpdrl-Aslam-v0  --num_envs 750 --headless```
 
-This will run the initial training without SLAM with 750 environments in parallel and no visualization. 
+This will run the initial training with 750 environments in parallel and no visualization. 
 
 - If visualization is wanted run instead: 
 
