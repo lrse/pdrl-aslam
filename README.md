@@ -91,7 +91,7 @@ python scripts/rsl_rl/train_with_SLAM.py \
 --enable_cameras
 ```
 
-This will run the retraining with SLAM with 2 environments in parallel and no visualization.
+This will run the retraining with slam_toolbox SLAM with 4 environments in parallel and no visualization.
 
 - If visualization is wanted, run instead:
 
@@ -106,19 +106,13 @@ python scripts/rsl_rl/train_with_SLAM.py \
 
 **4. Play with slam_toolbox SLAM:** TODO
 
-- Open the config.py file and change the default settings so that:
-
-PROFILE = “SLAM_and_occupancy_grid”
-
-PHASE = “play”
-
 - Run the cuvslam_launcher.py file and wait until everything is set. The command to run it is:
 
 ```python3 cuvslam_launcher.py --single```
 
 Notice that now we are using the flag --single since we want to play only one agent for visualization.
 
-By default, the loaded policy is the last model of the last run of the experiment folder logs/rsl_rl/PDRL_ASLAM_v0
+By default, the loaded policy is the last model of the last run of the experiment folder logs/rsl_rl/TODO
 
 However, an already trained policy is saved in demos
 
@@ -128,7 +122,7 @@ However, an already trained policy is saved in demos
 python scripts/rsl_rl/play_with_SLAM.py --task Template-Pdrl-Aslam-v0 --num_envs 1 --checkpoint demos/retrained_with_SLAM_agent.pt --enable_cameras
 ```
 
-Different environments can be tested by changing the variable ENVIRONMENT in the config.py file.
+Different environments can be tested by changing the variables ENVIRONMENT and warehouse_bool in the config.py file.
 
 
 ## Submission video ##
