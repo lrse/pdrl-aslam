@@ -20,23 +20,21 @@ This software stack was tested on:
 1. Ubuntu 22.04.
 2. NVIDIA driver 570.172.08.
 3. CUDA 12.8.
-4. Python 3.10.18
+4. Python 3.10.19
 
 ## Installation ##
 
 1. Install ROS2 Humble following the [documentation's instructions](https://docs.ros.org/en/humble/Installation.html). Remember to always “source /opt/ros/humble/setup.bash” on any new CLI.
-2. Create a new conda env with python 3.10.18.
-3. Install Isaac Gym 4.5 and Isaac Lab 2.3.2 following the [documentation's instructions](https://isaac-sim.github.io/IsaacLab/v2.1.0/source/setup/installation/binaries_installation.html). Make sure to include the installation of rsl_rl since this is the RL library we will use for training.
-4. Download Isaac ROS Visual SLAM container following the [documentation's instructions](https://nvidia-isaac-ros.github.io/repositories_and_packages/isaac_ros_visual_slam/isaac_ros_visual_slam/index.html).
-5. Clone this repository.
-6. In case of wanting to visualize an occupancy grid, as in our video, we recommend downloading slam_toolbox following the [documentation's instructions](https://docs.ros.org/en/humble/p/slam_toolbox/). The LiDAR topics are already configured to be subscribed for this package.
+2. Create a new conda env with Python 3.10.19.
+3. Install Isaac Sim 4.5 and Isaac Lab 2.3.2 following the [documentation's instructions](https://isaac-sim.github.io/IsaacLab/v2.1.0/source/setup/installation/binaries_installation.html). Make sure to include the installation of rsl_rl since this is the RL library we will use for training.
+4. Clone this repository.
+5. In case of wanting to test our training bridge wrapper, we recommend downloading slam_toolbox following the [documentation's instructions](https://docs.ros.org/en/humble/p/slam_toolbox/).
 
 
 ## Usage ##
 
-- We will only modify the config.py file, which is inside source/PDRL_ASLAM/PDRL_ASLAM/tasks/manager_based/pdrl_aslam.
-- The training/testing with SLAM is designed to work with one or two environments in parallel in our machine (Intel Core i7 CPU, an NVIDIA RTX 4060 GPU, and 32 GB of RAM). However, the default settings consider two environments. 
-- More agents can be easily added with minimal additions if the hardware allows it. 
+- We will only modify the config.py file in our folder to change between our four environments.
+- Training with our fixedlag SLAM is designed to work with 750 in parallel in our machine (Intel Core i7 CPU, an NVIDIA RTX 4060 GPU 8GB VRAM, and 32GB RAM). However, retraining with slam_toolbox works well with 4 agents.
 - If anything does not work, first reboot and retry, since that usually resolves common issues.
 
 **0. Activate** your conda environment (generally this is: ```conda activate env_isaaclab``` if you followed the installation guidelines) and source ROS 2: 
@@ -44,31 +42,31 @@ This software stack was tested on:
 ```source /opt/ros/humble/setup.bash```
 
 
-**1. Train without SLAM:**
+**1. Train with fixedlag SLAM:**
 - Run:
-```python scripts/rsl_rl/train.py   --task Template-Pdrl-Aslam-v0  --num_envs 512 --headless```
+```python scripts/rsl_rl/train.py   --task Isaac-Iros-Mpdrl-Aslam-v0  --num_envs 750 --headless```
 
-This will run the initial training without SLAM with 512 environments in parallel and no visualization. 
+This will run the initial training without SLAM with 750 environments in parallel and no visualization. 
 
 - If visualization is wanted run instead: 
 
-```python scripts/rsl_rl/train.py   --task Template-Pdrl-Aslam-v0  --num_envs 512```
+```python scripts/rsl_rl/train.py   --task Isaac-Iros-Mpdrl-Aslam-v0  --num_envs 750```
 
 
-**2. Play without SLAM:**
+**2. Play with fixedlag SLAM:**
 
-By default, the loaded policy is the last model of the last run of the experiment folder logs/rsl_rl/PDRL_ASLAM_v0
+By default, the loaded policy is the last model of the last run of the experiment folder logs/rsl_rl/iros_mpdrl_aslam
 
 However, an already trained policy is saved in demos folder.
 
 To run this already trained agent run:
 
-```python scripts/rsl_rl/play.py --task Template-Pdrl-Aslam-v0 --num_envs 1 --checkpoint demos/trained_no_SLAM_agent.pt```
+```python scripts/rsl_rl/play.py --task Isaac-Iros-Mpdrl-Aslam-v0 --num_envs 1 --checkpoint demos/TODO.pt```
 
-Different environments can be tested by changing the variable ENVIRONMENT in the config.py file.
+Different environments can be tested by changing the variables ENVIRONMENT and warehouse_bool in the config.py file.
 
 
-**3. Retrain with SLAM:**
+**3. Retrain with slam_toolbox SLAM:** TODO
 
 - Open the config.py file and change the default settings so that:
 
@@ -106,7 +104,7 @@ python scripts/rsl_rl/train_with_SLAM.py \
 --enable_cameras
 ```
 
-**4. Play with SLAM:**
+**4. Play with slam_toolbox SLAM:** TODO
 
 - Open the config.py file and change the default settings so that:
 
@@ -132,17 +130,8 @@ python scripts/rsl_rl/play_with_SLAM.py --task Template-Pdrl-Aslam-v0 --num_envs
 
 Different environments can be tested by changing the variable ENVIRONMENT in the config.py file.
 
-**5. Training debug:**
 
-Open the config.py file and change the settings so that:
-
-DEBUG = “yes”
-
-Run the cuvslam_launcher.py file and wait until everything is set.
-
-```python scripts/rsl_rl/train_with_SLAM.py --task Template-Pdrl-Aslam-v0  --num_envs 2```
-
-## Submission video ##
+## Submission video ## TODO
 
 https://github.com/user-attachments/assets/6721a4da-4fc1-4057-985d-48fd6a8f1d9b
 
