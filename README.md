@@ -72,8 +72,6 @@ Different environments can be tested by changing the variables ENVIRONMENT and w
 
 - Open the config.py file and change the default settings so that:
 
-PROFILE = “SLAM_and_occupancy_grid”
-
 PHASE = “retrain”
 
 The difference between “train” and “retrain” is due to the different PPO hyperparameters in each case. These can be noticed on the rsl_rl_ppo_cfg.py file.
