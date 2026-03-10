@@ -131,9 +131,9 @@ python scripts/rsl_rl/play_with_SLAM.py --task Template-Pdrl-Aslam-v0 --num_envs
 Different environments can be tested by changing the variable ENVIRONMENT in the config.py file.
 
 
-## Submission video ## TODO
+## Submission video ##
 
-https://github.com/user-attachments/assets/6721a4da-4fc1-4057-985d-48fd6a8f1d9b
+https://github.com/user-attachments/assets/23c5ee13-6702-46b4-ac61-b9c4d41755e7
 
 
 
