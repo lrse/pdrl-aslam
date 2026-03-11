@@ -68,7 +68,7 @@ To run this already trained agent run:
 Different environments can be tested by changing the variables ENVIRONMENT and warehouse_bool in the config.py file.
 
 
-**3. Retrain with slam_toolbox SLAM:** TODO
+**3. Retrain with slam_toolbox SLAM:** 
 
 - Open the config.py file and change the default settings so that:
 
@@ -83,12 +83,7 @@ The difference between “train” and “retrain” is due to the different PPO
 Then run:
 
 ```
-python scripts/rsl_rl/train_with_SLAM.py \
-  --task Template-Pdrl-Aslam-v0  --num_envs 2 --headless \
-  --resume \
-  agent.load_run=Trained_NO_SLAM \
-  agent.load_checkpoint=trained_no_SLAM.pt \
---enable_cameras
+TODO
 ```
 
 This will run the retraining with slam_toolbox SLAM with 4 environments in parallel and no visualization.
@@ -96,15 +91,10 @@ This will run the retraining with slam_toolbox SLAM with 4 environments in paral
 - If visualization is wanted, run instead:
 
 ```
-python scripts/rsl_rl/train_with_SLAM.py \
-  --task Template-Pdrl-Aslam-v0  --num_envs 2 \
-  --resume \
-  agent.load_run=Trained_NO_SLAM \
-  agent.load_checkpoint=trained_no_SLAM.pt \
---enable_cameras
+TODO
 ```
 
-**4. Play with slam_toolbox SLAM:** TODO
+**4. Play with slam_toolbox SLAM:**
 
 - Run the cuvslam_launcher.py file and wait until everything is set. The command to run it is:
 
@@ -119,7 +109,7 @@ However, an already trained policy is saved in demos
 - To run this already trained agent run:
 
 ```
-python scripts/rsl_rl/play_with_SLAM.py --task Template-Pdrl-Aslam-v0 --num_envs 1 --checkpoint demos/retrained_with_SLAM_agent.pt --enable_cameras
+TODO
 ```
 
 Different environments can be tested by changing the variables ENVIRONMENT and warehouse_bool in the config.py file.
