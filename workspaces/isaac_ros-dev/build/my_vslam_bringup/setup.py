@@ -1,1 +1,0 @@
-/home/wakkow/workspaces/isaac_ros-dev/src/my_vslam_bringup/setup.py

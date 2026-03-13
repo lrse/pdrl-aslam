@@ -39,7 +39,7 @@ This software stack was tested on:
 - Training with our fixedlag SLAM is designed to work with 750 in parallel in our machine (Intel Core i7 CPU, an NVIDIA RTX 4060 GPU 8GB VRAM, and 32GB RAM). However, retraining with slam_toolbox works well with 4 agents.
 - If anything does not work, first reboot and retry, since that usually resolves common issues.
 
-**0. Activate** your conda environment (generally this is: ```conda activate env_isaaclab``` if you followed the installation guidelines) and source ROS 2: 
+**0. Activate** your conda environment (generally this is: ```conda activate env_isaaclab_232``` if you followed the installation guidelines) and source ROS 2: 
 
 ```source /opt/ros/humble/setup.bash```
 
@@ -63,12 +63,12 @@ However, an already trained policy is saved in demos folder.
 
 To run this already trained agent run:
 
-```python scripts/rsl_rl/play.py --task Isaac-Iros-Mpdrl-Aslam-v0 --num_envs 1 --checkpoint demos/TODO.pt```
+```python scripts/rsl_rl/play.py --task Isaac-Iros-Mpdrl-Aslam-v0 --num_envs 1 --checkpoint demos/PPO_uncertainty.pt```
 
 Different environments can be tested by changing the variables ENVIRONMENT and warehouse_bool in the config.py file.
 
 
-**3. Retrain with slam_toolbox SLAM:** 
+**3. Retrain with slam_toolbox SLAM: TODO** 
 
 - Open the config.py file and change the default settings so that:
 
@@ -94,7 +94,7 @@ This will run the retraining with slam_toolbox SLAM with 4 environments in paral
 TODO
 ```
 
-**4. Play with slam_toolbox SLAM:**
+**4. Play with slam_toolbox SLAM: TODO**
 
 - Run the cuvslam_launcher.py file and wait until everything is set. The command to run it is:
 
