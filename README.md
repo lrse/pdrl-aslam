@@ -2,8 +2,7 @@
 
 
 ## Overview ##
-This repository provides the codes used for IROS 2026 submission. It includes our training bridge wrapper to train RL agents on Isaac Sim/Lab with ROS2 topics data.
-
+This repository provides the codes used for IROS 2026 submission.
 
 **Authors**: Private.
 
@@ -36,7 +35,7 @@ This software stack was tested on:
 ## Usage ##
 
 - We will only modify the config.py file in our folder to change between our four environments.
-- Training with our fixedlag SLAM is designed to work with 750 in parallel in our machine (Intel Core i7 CPU, an NVIDIA RTX 4060 GPU 8GB VRAM, and 32GB RAM). However, retraining with slam_toolbox works well with 4 agents.
+- Training with our fixed-lag SLAM is designed to work with 750 in parallel in our machine (Intel Core i7 CPU, an NVIDIA RTX 4060 GPU 8GB VRAM, and 32GB RAM). However, retraining with slam_toolbox works well with 4 agents.
 - If anything does not work, first reboot and retry, since that usually resolves common issues.
 
 **0. Activate** your conda environment (generally this is: ```conda activate env_isaaclab_232``` if you followed the installation guidelines) and source ROS 2: 
@@ -44,7 +43,7 @@ This software stack was tested on:
 ```source /opt/ros/humble/setup.bash```
 
 
-**1. Train with fixedlag SLAM:**
+**1. Train with fixed-lag SLAM:**
 - Run:
 ```python scripts/rsl_rl/train.py   --task Isaac-Iros-Mpdrl-Aslam-v0  --num_envs 750 --headless```
 
@@ -55,7 +54,7 @@ This will run the initial training with 750 environments in parallel and no visu
 ```python scripts/rsl_rl/train.py   --task Isaac-Iros-Mpdrl-Aslam-v0  --num_envs 750```
 
 
-**2. Play with fixedlag SLAM:**
+**2. Play with fixed-lag SLAM:**
 
 By default, the loaded policy is the last model of the last run of the experiment folder logs/rsl_rl/iros_mpdrl_aslam
 
