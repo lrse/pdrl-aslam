@@ -75,9 +75,9 @@ PHASE = “retrain”
 
 The difference between “train” and “retrain” is due to the different PPO hyperparameters in each case. These can be noticed on the rsl_rl_ppo_cfg.py file.
 
-- Run the cuvslam_launcher.py file and wait until everything is set. The command to run it is: 
+- Run the slam_toolbox_launcher.py file and wait until everything is set. The command to run it is: 
 
-```python3 cuvslam_launcher.py```
+```python3 slam_toolbox_launcher.py```
 
 Then run:
 
@@ -95,9 +95,9 @@ TODO
 
 **4. Play with slam_toolbox SLAM: TODO**
 
-- Run the cuvslam_launcher.py file and wait until everything is set. The command to run it is:
+- Run the slam_toolbox_launcher.py file and wait until everything is set. The command to run it is:
 
-```python3 cuvslam_launcher.py --single```
+```python3 slam_toolbox_launcher.py --single```
 
 Notice that now we are using the flag --single since we want to play only one agent for visualization.
 
