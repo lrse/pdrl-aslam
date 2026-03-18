@@ -26,8 +26,8 @@ This software stack was tested on:
 ## Installation ##
 
 1. Install ROS2 Humble following the [documentation instructions](https://docs.ros.org/en/humble/Installation.html). Remember to always “source /opt/ros/humble/setup.bash” on any new CLI.
-2. Create a new cConda environment with Python 3.10.19.
-3. Install Isaac Sim 4.5 and Isaac Lab 2.3.2 following the [documentation's instructions](https://isaac-sim.github.io/IsaacLab/v2.1.0/source/setup/installation/binaries_installation.html). Make sure to include the installation of rsl_rl since this is the RL library we will use for training.
+2. Create a new Conda environment with Python 3.10.19.
+3. Install Isaac Sim 4.5 and Isaac Lab 2.3.2 following the [documentation instructions](https://isaac-sim.github.io/IsaacLab/v2.1.0/source/setup/installation/binaries_installation.html). Make sure to include the installation of rsl_rl since this is the RL library we will use for training.
 4. Clone this repository.
 5. If you want to test our training bridge wrapper, we recommend downloading slam_toolbox following the [documentation instructions](https://docs.ros.org/en/humble/p/slam_toolbox/).
 
