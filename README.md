@@ -100,8 +100,7 @@ This will run the retraining with slam_toolbox SLAM with 4 environments in paral
 
 - Run the slam_toolbox_launcher.py file and wait until everything is set. The command to run it is:
 
-```python3 slam_toolbox_launcher.py   --num-envs 1   --mode async   --spawn-mode background   --logs-dir ~/slam_toolbox_logs
-```
+```python3 slam_toolbox_launcher.py   --num-envs 1   --mode async   --spawn-mode background   --logs-dir ~/slam_toolbox_logs```
 
 By default, the loaded policy is the last model of the last run of the experiment folder logs/rsl_rl/iros_mpdrl_aslam .
 
