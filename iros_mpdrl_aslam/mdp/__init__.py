@@ -11,3 +11,4 @@ from .terminations import *
 from .mpf_slam import *
 from .slam_reward_term import *
 from .frontier_agent import *
+from .slam_toolbox_reward_term import *
