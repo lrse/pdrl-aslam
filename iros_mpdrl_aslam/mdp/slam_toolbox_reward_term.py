@@ -1,3 +1,5 @@
+"""This module contains the SLAM reward configuration that includes the slam_toolbox blend."""
+
 from __future__ import annotations
 
 import atexit
@@ -90,13 +92,10 @@ class SLAMTOOLBOXActiveReward(ManagerTermBase):
     """Active-SLAM reward.
 
     Modes:
-      - default: original fixedlag uncertainty drives both reward and observation.
+      - default: fixedlag uncertainty drives both reward and observation.
       - bridge mode: reward term synchronizes with slam_toolbox each step, computes the
-        fixedlag->toolbox blend internally, and exposes the exact same scalar to the
+        "fixedlag-toolbox" blend internally, and exposes the exact same scalar to the
         observation pipeline through env.unwrapped._slam_U_norm.
-
-    This version can optionally require a *fresh* slam_toolbox covariance on every
-    env step during the whole blend (`bridge_require_fresh_always=True`).
     """
 
     cfg: RewardTermCfg
@@ -182,7 +181,7 @@ class SLAMTOOLBOXActiveReward(ManagerTermBase):
         self._bridge_step_wait_timeout_s = float(max(cfg.params.get("bridge_step_wait_timeout_s", 0.10), 1e-4))
         self._bridge_reset_quarantine_updates = max(int(cfg.params.get("bridge_reset_quarantine_updates", 2)), 0)
         self._bridge_require_fresh_when_full = bool(cfg.params.get("bridge_require_fresh_when_full", True))
-        self._bridge_require_fresh_always = bool(cfg.params.get("bridge_require_fresh_always", False))
+        self._bridge_require_fresh_always = bool(cfg.params.get("bridge_require_fresh_always", True))
         if self._bridge_require_fresh_always and self._bridge_reset_quarantine_updates > 0:
             print(
                 f"[INFO] bridge_require_fresh_always=True is incompatible with bridge_reset_quarantine_updates="

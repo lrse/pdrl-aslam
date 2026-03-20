@@ -1,3 +1,5 @@
+"""This module contains the bridge "Isaac Lab - ROS 2" configuration."""
+
 from __future__ import annotations
 
 import math

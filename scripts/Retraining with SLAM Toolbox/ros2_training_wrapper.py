@@ -1,3 +1,6 @@
+"""This module contains the wrapper configuration to incorporate any ROS2 SLAM package
+during training."""
+
 from __future__ import annotations
 
 import gymnasium as gym

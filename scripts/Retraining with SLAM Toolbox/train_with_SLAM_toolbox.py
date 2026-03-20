@@ -3,16 +3,9 @@
 #
 # SPDX-License-Identifier: BSD-3-Clause
 
-"""Train an RSL-RL agent while using slam_toolbox uncertainty inside the reward and observation.
 
-The SLAM reward term owns:
-- per-step synchronization with slam_toolbox,
-- the fixed-lag -> slam_toolbox blend schedule,
-- the scalar uncertainty that is fed to both reward and observation.
+"""Script to train RL agent with RSL-RL using slam_toolbox uncertainty inside the reward and observation.."""
 
-This version adds a strict option so training can require a *fresh* slam_toolbox
-covariance on every env step for the whole blend, not just after alpha reaches 1.0.
-"""
 
 import argparse
 import sys

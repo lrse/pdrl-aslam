@@ -5,16 +5,7 @@ from __future__ import annotations
 # All rights reserved.
 # SPDX-License-Identifier: BSD-3-Clause
 
-"""Play/evaluate an RSL-RL agent with slam_toolbox covariance injected into observations.
-
-This version fixes the "freezes before the robot starts moving" behavior by:
-  1) explicitly resetting after all wrappers are created,
-  2) waiting for the slam_toolbox ROS graph to be connected,
-  3) forcing an initial scan/odom publication so the first env.step() does not stall
-     for a long timeout waiting for the very first /pose message,
-  4) exposing bridge_require_fresh_always so play can match training,
-  5) using the current Isaac Lab / rsl-rl compatibility path.
-"""
+"""Script to play a checkpoint or run a fixed-horizon evaluation for an RSL-RL agent with slam_toolbox covariance injected."""
 
 import argparse
 import csv
